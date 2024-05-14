@@ -8,3 +8,4 @@ export const memberDetailedResolver: ResolveFn<Member> = (route, state) => {
 
   return memberService.getMember(route.paramMap.get('username')!);
 };
+
