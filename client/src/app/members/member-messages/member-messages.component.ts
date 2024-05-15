@@ -16,23 +16,19 @@ import { MessageService } from 'src/app/_services/message.service';
 export class MemberMessagesComponent implements OnInit {
   @ViewChild('messageForm') messageForm?: NgForm;
   @Input() username?: string;
-  @Input() messages: Message[] = []; 
   messageContent = '';
 
 
-  constructor (private messageService: MessageService) {}
+  constructor (public messageService: MessageService) {}
 
   ngOnInit(): void {
 
   }
 
   sendMessage() {
-    if (!this.username) return;
-    this.messageService.sendMessage(this.username, this.messageContent).subscribe({
-      next: message => {
-        this.messages.push(message)
-        this.messageForm?.reset();
-      }
+    if (!this.username) return;     //then used with promises, subscribe used with observables
+    this.messageService.sendMessage(this.username, this.messageContent).then(() => {  //empty callback function, not doing anything with messages we get back, as messageThread$ is handling
+      this.messageForm?.reset();
     })
   }
 
