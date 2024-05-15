@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnInit, ViewChild } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TimeagoModule } from 'ngx-timeago';
@@ -7,6 +7,7 @@ import { Message } from 'src/app/_models/message';
 import { MessageService } from 'src/app/_services/message.service';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,  //Scrolling causes angular to log error in browser console
   selector: 'app-member-messages',
   templateUrl: './member-messages.component.html',
   standalone: true,
