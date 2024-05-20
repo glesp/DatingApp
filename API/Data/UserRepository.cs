@@ -19,12 +19,16 @@ public class UserRepository : IUserRepository
         _mapper = mapper;
     }
 
-    public async Task<MemberDto> GetMemberAsync(string username)
+    public async Task<MemberDto> GetMemberAsync(string username, bool isCurrent)
     {
-        return await _context.Users
-        .Where(x => x.UserName == username)
-        .ProjectTo<MemberDto>(_mapper.ConfigurationProvider)
-        .SingleOrDefaultAsync();
+        var query = _context.Users
+            .Where(x => x.UserName == username)
+            .ProjectTo<MemberDto>(_mapper.ConfigurationProvider)
+            .AsQueryable();
+
+        if (isCurrent) query = query.IgnoreQueryFilters();
+
+        return await query.FirstOrDefaultAsync();
     }
 
     public async Task<PagedList<MemberDto>> GetMembersAsync(UserParams userParams)
@@ -39,19 +43,19 @@ public class UserRepository : IUserRepository
 
         query = query.Where(u => u.DateOfBirth >= minDob && u.DateOfBirth <= maxDob);
 
-        query = userParams.OrderBy switch 
+        query = userParams.OrderBy switch
         {
             "created" => query.OrderByDescending(u => u.Created),
             _ => query.OrderByDescending(u => u.LastActive)
         };
 
         return await PagedList<MemberDto>.CreateAsync(
-            query.AsNoTracking().ProjectTo<MemberDto>(_mapper.ConfigurationProvider), 
-            userParams.PageNumber, 
+            query.AsNoTracking().ProjectTo<MemberDto>(_mapper.ConfigurationProvider),
+            userParams.PageNumber,
             userParams.PageSize);
-        
+
     }
- 
+
     public async Task<AppUser> GetUserByIdAsync(int id)
     {
         return await _context.Users.FindAsync(id);
@@ -59,8 +63,9 @@ public class UserRepository : IUserRepository
 
     public async Task<AppUser> GetUserByUsernameAsync(string username)
     {
-        return await  _context.Users
+        return await _context.Users
         .Include(p => p.Photos)
+        .IgnoreQueryFilters()
         .SingleOrDefaultAsync(x => x.UserName == username);
     }
 
@@ -81,5 +86,15 @@ public class UserRepository : IUserRepository
     public void Update(AppUser user)
     {
         _context.Entry(user).State = EntityState.Modified;
+    }
+
+
+    public async Task<AppUser> GetUserByPhotoId(int photoId)
+    {
+        return await _context.Users
+            .Include(p => p.Photos)
+            .IgnoreQueryFilters()
+            .Where(p => p.Photos.Any(p => p.Id == photoId))
+            .FirstOrDefaultAsync();
     }
 }

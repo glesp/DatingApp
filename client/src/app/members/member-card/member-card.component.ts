@@ -12,7 +12,7 @@ import { PresenceService } from 'src/app/_services/presence.service';
 export class MemberCardComponent implements OnInit{
   @Input() member: Member | undefined;
 
-  constructor(private memberService: MembersService, private toastr: ToastrService,   // presenceService public so we can use async pipe
+  constructor(private memberService: MembersService, private toastr: ToastrService,   // presenceService public so we can use async pipes
     public presenceService: PresenceService) {} 
 
   ngOnInit(): void {

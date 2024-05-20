@@ -51,9 +51,8 @@ public class UsersController : BaseApiController
     [HttpGet("{username}")]  //api/Users/2
     public async Task<ActionResult<MemberDto>> GetUser(string username)
     {
-        //var user = _context.Users.Find(id);
-        //return user;
-        return await _uow.UserRepository.GetMemberAsync(username);
+        var currentUsername = User.GetUsername();
+        return await _uow.UserRepository.GetMemberAsync(username, isCurrent: currentUsername == username);
     }
 
     [HttpPut]
@@ -75,8 +74,6 @@ public class UsersController : BaseApiController
     {
         var user = await _uow.UserRepository.GetUserByUsernameAsync(User.GetUsername());
 
-        if (user == null) return NotFound();
-
         var result = await _photoService.AddPhotoAsync(file);
 
         if (result.Error != null) return BadRequest(result.Error.Message);
@@ -87,14 +84,14 @@ public class UsersController : BaseApiController
             PublicId = result.PublicId
         };
 
-        if (user.Photos.Count == 0) photo.IsMain = true;
-
         user.Photos.Add(photo);
 
         if (await _uow.Complete())
         {
-            return CreatedAtAction(nameof(GetUser),
-                new { username = user.UserName }, _mapper.Map<PhotoDto>(photo));
+
+            
+          return CreatedAtAction(nameof(GetUser),
+            new { username = user.UserName }, _mapper.Map<PhotoDto>(photo));
         }
 
         return BadRequest("Problem adding photo");
@@ -129,13 +126,14 @@ public class UsersController : BaseApiController
 
         var user =  await _uow.UserRepository.GetUserByUsernameAsync(User.GetUsername());
 
-        var photo = user.Photos.FirstOrDefault(x => x.Id == photoId);
+        var photo = await _uow.PhotoRepository.GetPhotoById(photoId);
 
         if (photo == null) return NotFound();
 
         if (photo.IsMain) return BadRequest("You cannot delete your main photo");
 
-        if (photo.PublicId != null){
+        if (photo.PublicId != null)
+        {
 
             var result = await _photoService.DeletePhotoAsync(photo.PublicId); //result comes back from cloudinary deletion request
 
