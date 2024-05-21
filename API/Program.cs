@@ -31,9 +31,13 @@ app.UseCors(builder => builder
 app.UseAuthentication();
 app.UseAuthorization();    
 
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.MapControllers();
 app.MapHub<PresenceHub>("hubs/presence");   //SignalR - always active
 app.MapHub<MessageHub>("hubs/message");   //SignalR - only active in messages tab 
+app.MapFallbackToController("Index", "Fallback");
 
 using var scope = app.Services.CreateScope();
 var services = scope.ServiceProvider;
@@ -42,7 +46,7 @@ try{
     var userManager = services.GetRequiredService<UserManager<AppUser>>();
     var roleManager = services.GetRequiredService<RoleManager<AppRole>>();
     await context.Database.MigrateAsync();
-    await context.Database.ExecuteSqlRawAsync("DELETE FROM [Connections]");  //Clear connections when restart app - otherwise msgs "read" from previous session
+    await Seed.ClearConnections(context);
     await Seed.SeedUsers(userManager, roleManager);
 }
 catch (Exception ex){

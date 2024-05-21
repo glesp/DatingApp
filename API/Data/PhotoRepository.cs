@@ -10,7 +10,6 @@ namespace API;
 public class PhotoRepository : IPhotoRepository
 {
     private readonly DataContext _context;
-    private readonly IMapper _mapper;
 
     public PhotoRepository(DataContext context)
     {
