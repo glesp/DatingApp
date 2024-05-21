@@ -18,6 +18,7 @@ export class MemberMessagesComponent implements OnInit {
   @ViewChild('messageForm') messageForm?: NgForm;
   @Input() username?: string;
   messageContent = '';
+  loading = false;
 
 
   constructor (public messageService: MessageService) {}
@@ -28,9 +29,10 @@ export class MemberMessagesComponent implements OnInit {
 
   sendMessage() {
     if (!this.username) return;     //then used with promises, subscribe used with observables
+    this.loading = true;
     this.messageService.sendMessage(this.username, this.messageContent).then(() => {  //empty callback function, not doing anything with messages we get back, as messageThread$ is handling
       this.messageForm?.reset();
-    })
+    }).finally(() => this.loading = false);   //remove loading flag after msg sent
   }
 
 }
